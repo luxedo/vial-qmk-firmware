@@ -16,13 +16,7 @@
 
 #pragma once
 
-enum sofle_layers {
-    _BASIC,
-    _SYMBOL,
-    _NAV,
-    _NUMBER,
-    _LED,
-    _MEDIA,
-    _CUSTOM,
-    _MOUSE,
-};
+#define TERGO_OLED_NUM_LAYERS 8
+#define TERGO_OLED_NUM_LAYERS_FRAMES 1
+
+extern const char PROGMEM oled_layers[TERGO_OLED_NUM_LAYERS][TERGO_OLED_NUM_LAYERS_FRAMES][512];

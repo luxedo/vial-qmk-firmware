@@ -18,6 +18,7 @@
 
 #include "oled.h"
 #include "art/moon_tergo.h"
+#include "art/oled_layers.h"
 #include "layers.h"
 
 #define TERGO_ENABLE_ANIMATION
@@ -41,11 +42,7 @@ void suspend_power_down_user(void) {
 }
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
-    if (is_keyboard_master() || (get_highest_layer(layer_state) == _ADJUST) ) {
-        return OLED_ROTATION_270;
-    }
     return OLED_ROTATION_270;
-    return rotation;
 }
 
 void render_logo(void) {
@@ -156,89 +153,106 @@ void render_adjust(uint8_t col, uint8_t line) {
 
 char buffer[9];
 
-static void print_layer_number(uint8_t layer) {
-    snprintf(buffer, sizeof(buffer), "Lyr%2d\n", layer);
-    oled_write(buffer, false);
-}
-
+// static void print_layer_number(uint8_t layer) {
+//     snprintf(buffer, sizeof(buffer), "Lyr%2d\n", layer);
+//     oled_write(buffer, false);
+// }
+//
 
 static void print_status_narrow(void) {
+
+    switch (get_highest_layer(layer_state)) {
+        case _BASIC:
+            oled_write_raw_P(oled_layers[0][0], sizeof(oled_layers[0][0]));
+            break;
+        case _SYMBOL:
+            oled_write_raw_P(oled_layers[1][0], sizeof(oled_layers[1][0]));
+            break;
+        case _NAV:
+            oled_write_raw_P(oled_layers[2][0], sizeof(oled_layers[2][0]));
+            break;
+        case _NUMBER:
+            oled_write_raw_P(oled_layers[3][0], sizeof(oled_layers[3][0]));
+            break;
+    }
+
     // Print current mode
+    oled_write_ln_P(PSTR(""), false);
     oled_write_ln_P(PSTR("Tergo"), false);
     oled_write_ln_P(PSTR(""), false);
 
-    oled_write_ln_P(PSTR("MODE "), false);
+    oled_write_ln_P(PSTR("Luxdo"), false);
 
-    if(print_layer_number_instead_of_text == true) {
-        print_layer_number(get_highest_layer(default_layer_state));
-    }
-    else {
-        switch (get_highest_layer(default_layer_state)) {
-            case _BASIC:
-                oled_write_ln_P(PSTR("Basic"), false);
-                break;
-            case _ADEPT:
-                oled_write_ln_P(PSTR("Adept"), false);
-                break;
-            default:
-                oled_write_ln_P(PSTR("Other"), false);
-                break;
-        }
-    }
-    oled_write_P(PSTR("\n"), false);
+    // if(print_layer_number_instead_of_text == true) {
+    //     print_layer_number(get_highest_layer(default_layer_state));
+    // }
+    // else {
+    //     switch (get_highest_layer(default_layer_state)) {
+    //         case _BASIC:
+    //             oled_write_ln_P(PSTR("Basic"), false);
+    //             break;
+    //         case _ADEPT:
+    //             oled_write_ln_P(PSTR("Adept"), false);
+    //             break;
+    //         default:
+    //             oled_write_ln_P(PSTR("Other"), false);
+    //             break;
+    //     }
+    // }
+    // oled_write_P(PSTR("\n"), false);
 
-    // Print current layer
-    oled_write_ln_P(PSTR("LAYER"), false);
+    // // Print current layer
+    // oled_write_ln_P(PSTR("LAYER"), false);
 
-    if(print_layer_number_instead_of_text == true) {
-        print_layer_number(get_highest_layer(layer_state));
-    }
-    else {
-        switch (get_highest_layer(layer_state)) {
-            case _BASIC:
-                oled_write_ln_P(PSTR("Base "), false);
-                break;
-            case _ADEPT:
-                oled_write_ln_P(PSTR("Base "), false);
-                break;
-            case _CUSTOM:
-                oled_write_ln_P(PSTR("Base "), false);
-                break;
-            case _SYMB_AND_NAV:
-                oled_write_ln_P(PSTR("SymNv"), false);
-                break;
-            case _ADJUST:
-                oled_write_ln_P(PSTR("Confg"), false);
-                break;
-            case _MEDIA:
-                oled_write_ln_P(PSTR("Media"), false);
-                break;
-            case _NUMPAD:
-                oled_write_ln_P(PSTR("NumPd"), false);
-                break;
-            case _MOUSE:
-                oled_write_ln_P(PSTR("Mouse"), false);
-                break;
-            default:
-                print_layer_number(get_highest_layer(layer_state));
-                break;
-        }
-    }
+    // if(print_layer_number_instead_of_text == true) {
+    //     print_layer_number(get_highest_layer(layer_state));
+    // }
+    // else {
+    //     switch (get_highest_layer(layer_state)) {
+    //         case _BASIC:
+    //             oled_write_ln_P(PSTR("Base "), false);
+    //             break;
+    //         case _ADEPT:
+    //             oled_write_ln_P(PSTR("Base "), false);
+    //             break;
+    //         case _CUSTOM:
+    //             oled_write_ln_P(PSTR("Base "), false);
+    //             break;
+    //         case _SYMB_AND_NAV:
+    //             oled_write_ln_P(PSTR("SymNv"), false);
+    //             break;
+    //         case _ADJUST:
+    //             oled_write_ln_P(PSTR("Confg"), false);
+    //             break;
+    //         case _MEDIA:
+    //             oled_write_ln_P(PSTR("Media"), false);
+    //             break;
+    //         case _NUMPAD:
+    //             oled_write_ln_P(PSTR("NumPd"), false);
+    //             break;
+    //         case _MOUSE:
+    //             oled_write_ln_P(PSTR("Mouse"), false);
+    //             break;
+    //         default:
+    //             print_layer_number(get_highest_layer(layer_state));
+    //             break;
+    //     }
+    // }
 
-    oled_write_ln_P(PSTR(""), false);
-    led_t led_usb_state = host_keyboard_led_state();
+    // oled_write_ln_P(PSTR(""), false);
+    // led_t led_usb_state = host_keyboard_led_state();
 
-    switch (get_highest_layer(layer_state)) {
-        case _NUMPAD:
-            oled_write_P(PSTR("NumLk"), led_usb_state.num_lock);
-            break;
-        case _MOUSE:
-            oled_write_P(PSTR("ScrLk"), led_usb_state.scroll_lock);
-            break;
-        default:
-            oled_write_P(PSTR("CpsLk"), led_usb_state.caps_lock || is_caps_word_on());
-            break;
-    }
+    // switch (get_highest_layer(layer_state)) {
+    //     case _NUMPAD:
+    //         oled_write_P(PSTR("NumLk"), led_usb_state.num_lock);
+    //         break;
+    //     case _MOUSE:
+    //         oled_write_P(PSTR("ScrLk"), led_usb_state.scroll_lock);
+    //         break;
+    //     default:
+    //         oled_write_P(PSTR("CpsLk"), led_usb_state.caps_lock || is_caps_word_on());
+    //         break;
+    // }
 }
 
 bool oled_task_user(void) {
@@ -259,12 +273,12 @@ bool oled_task_user(void) {
         print_status_narrow();
     }
     else {
-        if (get_highest_layer(layer_state) == _ADJUST) {
-            oled_clear();
-            render_adjust(0, 0);
-            refresh_logo_right_away = true;
-            return false;
-        }
+        // if (get_highest_layer(layer_state) == _ADJUST) {
+        //     oled_clear();
+        //     render_adjust(0, 0);
+        //     refresh_logo_right_away = true;
+        //     return false;
+        // }
 
         render_logo();
     }
