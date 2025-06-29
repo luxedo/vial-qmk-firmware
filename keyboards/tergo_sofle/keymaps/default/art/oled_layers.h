@@ -18,5 +18,19 @@
 
 #define TERGO_OLED_NUM_LAYERS 8
 #define TERGO_OLED_NUM_LAYERS_FRAMES 1
+#define TERGO_SCREEN_PIXELS 512
 
-extern const char PROGMEM oled_layers[TERGO_OLED_NUM_LAYERS][TERGO_OLED_NUM_LAYERS_FRAMES][512];
+const unsigned char oled_layers_base [TERGO_SCREEN_PIXELS] PROGMEM;
+const unsigned char oled_layers_ind_alt [TERGO_SCREEN_PIXELS] PROGMEM;
+const unsigned char oled_layers_ind_caps [TERGO_SCREEN_PIXELS] PROGMEM;
+const unsigned char oled_layers_ind_ctrl [TERGO_SCREEN_PIXELS] PROGMEM;
+const unsigned char oled_layers_ind_fun [TERGO_SCREEN_PIXELS] PROGMEM;
+const unsigned char oled_layers_ind_gui [TERGO_SCREEN_PIXELS] PROGMEM;
+const unsigned char oled_layers_ind_num [TERGO_SCREEN_PIXELS] PROGMEM;
+const unsigned char oled_layers_ind_scroll [TERGO_SCREEN_PIXELS] PROGMEM;
+const unsigned char oled_layers_ind_shift [TERGO_SCREEN_PIXELS] PROGMEM;
+const unsigned char oled_layers_led [TERGO_SCREEN_PIXELS] PROGMEM;
+const unsigned char oled_layers_media [TERGO_SCREEN_PIXELS] PROGMEM;
+const unsigned char oled_layers_nav [TERGO_SCREEN_PIXELS] PROGMEM;
+const unsigned char oled_layers_num [TERGO_SCREEN_PIXELS] PROGMEM;
+const unsigned char oled_layers_symbol [TERGO_SCREEN_PIXELS] PROGMEM;

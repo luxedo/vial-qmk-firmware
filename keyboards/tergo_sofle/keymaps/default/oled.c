@@ -33,6 +33,7 @@ uint16_t time_between_frames = 0;
 uint16_t key_timer;
 bool timer_initialized = false;
 bool refresh_logo_right_away = false;
+char oled_blip [TERGO_SCREEN_PIXELS] = {0};
 
 extern bool is_oled_enabled;
 extern bool print_layer_number_instead_of_text;
@@ -150,109 +151,67 @@ void render_adjust(uint8_t col, uint8_t line) {
     #endif
 }
 
+static void clear_layers(void) {
+    memcpy(oled_blip, oled_layers_base, TERGO_SCREEN_PIXELS);
+}
 
-char buffer[9];
+static void stack_layers(const unsigned char layer[TERGO_SCREEN_PIXELS]) {
+    for (ssize_t i = 0; i<TERGO_SCREEN_PIXELS; i++) {
+        oled_blip[i] |= layer[i];
+    }
+}
 
-// static void print_layer_number(uint8_t layer) {
-//     snprintf(buffer, sizeof(buffer), "Lyr%2d\n", layer);
-//     oled_write(buffer, false);
-// }
-//
+static void print_status(void) {
+    clear_layers();
 
-static void print_status_narrow(void) {
-
-    switch (get_highest_layer(layer_state)) {
+    enum sofle_layers layer = get_highest_layer(layer_state);
+    switch (layer) {
         case _BASIC:
-            oled_write_raw_P(oled_layers[0][0], sizeof(oled_layers[0][0]));
             break;
         case _SYMBOL:
-            oled_write_raw_P(oled_layers[1][0], sizeof(oled_layers[1][0]));
+            stack_layers(oled_layers_symbol);
             break;
         case _NAV:
-            oled_write_raw_P(oled_layers[2][0], sizeof(oled_layers[2][0]));
+            stack_layers(oled_layers_nav);
             break;
         case _NUMBER:
-            oled_write_raw_P(oled_layers[3][0], sizeof(oled_layers[3][0]));
+            stack_layers(oled_layers_num);
+            break;
+        case _LED:
+            stack_layers(oled_layers_led);
+            break;
+        case _MEDIA:
+            stack_layers(oled_layers_media);
+            break;
+        default:
             break;
     }
 
-    // Print current mode
-    oled_write_ln_P(PSTR(""), false);
-    oled_write_ln_P(PSTR("Tergo"), false);
-    oled_write_ln_P(PSTR(""), false);
+    led_t led_usb_state = host_keyboard_led_state();
+    if (led_usb_state.caps_lock) {
+        stack_layers(oled_layers_ind_caps);
+    }
+    if (led_usb_state.num_lock) {
+        stack_layers(oled_layers_ind_num);
+    }
+    if (led_usb_state.scroll_lock) {
+        stack_layers(oled_layers_ind_num);
+    }
 
-    oled_write_ln_P(PSTR("Luxdo"), false);
-
-    // if(print_layer_number_instead_of_text == true) {
-    //     print_layer_number(get_highest_layer(default_layer_state));
-    // }
-    // else {
-    //     switch (get_highest_layer(default_layer_state)) {
-    //         case _BASIC:
-    //             oled_write_ln_P(PSTR("Basic"), false);
-    //             break;
-    //         case _ADEPT:
-    //             oled_write_ln_P(PSTR("Adept"), false);
-    //             break;
-    //         default:
-    //             oled_write_ln_P(PSTR("Other"), false);
-    //             break;
-    //     }
-    // }
-    // oled_write_P(PSTR("\n"), false);
-
-    // // Print current layer
-    // oled_write_ln_P(PSTR("LAYER"), false);
-
-    // if(print_layer_number_instead_of_text == true) {
-    //     print_layer_number(get_highest_layer(layer_state));
-    // }
-    // else {
-    //     switch (get_highest_layer(layer_state)) {
-    //         case _BASIC:
-    //             oled_write_ln_P(PSTR("Base "), false);
-    //             break;
-    //         case _ADEPT:
-    //             oled_write_ln_P(PSTR("Base "), false);
-    //             break;
-    //         case _CUSTOM:
-    //             oled_write_ln_P(PSTR("Base "), false);
-    //             break;
-    //         case _SYMB_AND_NAV:
-    //             oled_write_ln_P(PSTR("SymNv"), false);
-    //             break;
-    //         case _ADJUST:
-    //             oled_write_ln_P(PSTR("Confg"), false);
-    //             break;
-    //         case _MEDIA:
-    //             oled_write_ln_P(PSTR("Media"), false);
-    //             break;
-    //         case _NUMPAD:
-    //             oled_write_ln_P(PSTR("NumPd"), false);
-    //             break;
-    //         case _MOUSE:
-    //             oled_write_ln_P(PSTR("Mouse"), false);
-    //             break;
-    //         default:
-    //             print_layer_number(get_highest_layer(layer_state));
-    //             break;
-    //     }
-    // }
-
-    // oled_write_ln_P(PSTR(""), false);
-    // led_t led_usb_state = host_keyboard_led_state();
-
-    // switch (get_highest_layer(layer_state)) {
-    //     case _NUMPAD:
-    //         oled_write_P(PSTR("NumLk"), led_usb_state.num_lock);
-    //         break;
-    //     case _MOUSE:
-    //         oled_write_P(PSTR("ScrLk"), led_usb_state.scroll_lock);
-    //         break;
-    //     default:
-    //         oled_write_P(PSTR("CpsLk"), led_usb_state.caps_lock || is_caps_word_on());
-    //         break;
-    // }
+    uint8_t mods = get_mods();
+    if (mods & MOD_MASK_CTRL) {
+        stack_layers(oled_layers_ind_ctrl);
+    }
+    if (mods & MOD_MASK_SHIFT) {
+        stack_layers(oled_layers_ind_shift);
+    }
+    if (mods & MOD_MASK_ALT) {
+        stack_layers(oled_layers_ind_alt);
+    }
+    if (mods & MOD_MASK_GUI) {
+        stack_layers(oled_layers_ind_gui);
+    }
+    oled_write_raw_P(oled_blip, TERGO_SCREEN_PIXELS);
 }
 
 bool oled_task_user(void) {
@@ -270,16 +229,15 @@ bool oled_task_user(void) {
     }
 
     if (is_keyboard_master()) {
-        print_status_narrow();
+        print_status();
     }
     else {
-        // if (get_highest_layer(layer_state) == _ADJUST) {
-        //     oled_clear();
-        //     render_adjust(0, 0);
-        //     refresh_logo_right_away = true;
-        //     return false;
-        // }
-
+        if (get_highest_layer(layer_state) == _LED) {
+            oled_clear();
+            render_adjust(0, 0);
+            refresh_logo_right_away = true;
+            return false;
+        }
         render_logo();
     }
     return false;
